@@ -42,7 +42,7 @@ If you find this work useful, please consider citing:
 ```bibtex
 @article{medlsc2026,
   title     = {Learning to Specialize and Collaborate: Towards Hospital-centric Medical Multimodal Large Language Models That Learn Continually},
-  author    = {NEXZ-AILab},
+  author    = {},
   year      = {2026}
 }
 ```
