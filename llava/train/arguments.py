@@ -26,7 +26,7 @@ class ModelArguments:
     router_supervision_loss: bool = field(default=False)
     router_supervision_weight: float = field(default=1.0)
 
-    # Task-aware allocation draft options for mslora_prog.
+    
     routing_global_enable: bool = field(default=True)
     routing_allocation_enable: bool = field(default=True)
     routing_projector_hidden: int = field(default=0)
