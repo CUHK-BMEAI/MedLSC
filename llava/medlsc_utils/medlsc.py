@@ -1,6 +1,6 @@
-"""Draft task-aware MSLoRA variant.
+"""Draft task-aware MedLSC variant.
 
-This file keeps the current MSLoRA block structure, but replaces the hard sum over
+This file keeps the current MedLSC block structure, but replaces the hard sum over
 active LoRA blocks with learned task-aware allocation weights.
 
 Design notes:
@@ -18,7 +18,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class MSLoRALayer:
+class MedLSCLayer:
     def __init__(
         self,
         lora_rank: int,
@@ -72,7 +72,7 @@ class AllocationProjector(nn.Module):
         return self.norm(x)
 
 
-class Linear(nn.Linear, MSLoRALayer):
+class Linear(nn.Linear, MedLSCLayer):
     def __init__(
         self,
         max_task: int,
@@ -93,7 +93,7 @@ class Linear(nn.Linear, MSLoRALayer):
             kwargs.pop('adding_layers')
 
         nn.Linear.__init__(self, in_features, out_features, **kwargs)
-        MSLoRALayer.__init__(self, lora_rank=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout)
+        MedLSCLayer.__init__(self, lora_rank=lora_rank, lora_alpha=lora_alpha, lora_dropout=lora_dropout)
 
         self.r = lora_rank
         self.fan_in_fan_out = fan_in_fan_out
