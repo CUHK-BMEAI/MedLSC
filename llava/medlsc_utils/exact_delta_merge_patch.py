@@ -1,4 +1,4 @@
-"""Exact weighted LoRA-delta aggregation for MSLoRA.
+"""Exact weighted LoRA-delta aggregation for MedLSC.
 
 For every sample and routed layer, evaluate the mathematically exact mixture
 
@@ -25,11 +25,11 @@ from typing import Optional
 
 import torch
 
-from llava.medlsc_utils import medlsc as mslora
+from llava.medlsc_utils import medlsc
 
 
 def _exact_delta_fusion(
-    self: mslora.Linear,
+    self: medlsc.Linear,
     x: torch.Tensor,
     task_mask: Optional[torch.BoolTensor],
     routing_weights: torch.Tensor,
@@ -89,10 +89,10 @@ def _exact_delta_fusion(
 
 def apply_exact_delta_merge_patch() -> None:
     """Install the exact weighted-delta fusion operator once."""
-    if getattr(mslora.Linear, "_v7_exact_delta_merge_patch", False):
+    if getattr(medlsc.Linear, "_v7_exact_delta_merge_patch", False):
         return
-    mslora.Linear._fuse_with_routing_weights = _exact_delta_fusion
-    mslora.Linear._v7_exact_delta_merge_patch = True
+    medlsc.Linear._fuse_with_routing_weights = _exact_delta_fusion
+    medlsc.Linear._v7_exact_delta_merge_patch = True
     print(
         "[V7 DELTA MERGE] Using exact weighted LoRA deltas: "
         "delta=sum_i(w_i * B_i(A_i(x)))."
