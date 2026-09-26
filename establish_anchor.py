@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
-"""Build CLIP anchors and test whether they route samples to the right LoRA expert.
-
-This is deliberately independent of the existing MedLSC training/evaluation files.
-It validates the same standalone per-dataset LoRA checkpoints used by
-``train.py``, builds one image/text anchor per task from
-the training split, and measures anchor-routing accuracy on the test splits.
-
-No LLaVA generation is performed: the purpose of this program is to isolate the
-quality of anchor-based expert allocation from answer-generation quality.
+"""
+Build anchor: anchor_lora_router.pt, test_feature_cache/ for evaluation anchor priors.
 """
 
 from __future__ import annotations
