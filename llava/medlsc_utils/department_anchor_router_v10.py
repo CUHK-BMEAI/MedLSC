@@ -1,4 +1,4 @@
-"""Department-aware hybrid routing for MSLoRA.
+"""Department-aware hybrid routing for MedLSC.
 
 This module is intentionally lightweight and monkey-patch based so the original
 model files can stay untouched.  It combines:
