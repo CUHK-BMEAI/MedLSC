@@ -1,1 +1,1 @@
-from . import medlsc as mslora
+from . import medlsc
