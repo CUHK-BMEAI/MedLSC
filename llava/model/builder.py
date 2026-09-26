@@ -4,8 +4,8 @@ import os.path
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig
 import torch
 
-from llava.medlsc_utils import medlsc as mslora
-from llava.medlsc_utils.lora_utils import get_all_linear_names, add_lora_into_model_by_name
+from llava.medlsc_utils import medlsc
+from llava.medlsc_utils.lora_utils import get_all_linear_names, add_lora_into_model_by_name, get_adapter_config
 from llava.model import LlavaMistralForCausalLM
 from llava.constants import DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 
@@ -36,7 +36,7 @@ def _init_global_routing_modules(model, routing_global_enable, routing_projector
     hidden_size = int(model.config.hidden_size)
     hidden_features = int(routing_projector_hidden) if int(routing_projector_hidden) > 0 else max(1, hidden_size // 2)
 
-    model.routing_projector = mslora.AllocationProjector(
+    model.routing_projector = medlsc.AllocationProjector(
         in_features=hidden_size,
         hidden_features=hidden_features,
         out_features=hidden_size,
@@ -110,13 +110,13 @@ def load_pretrained_model(
         cfg_path = os.path.join(os.path.dirname(lora_paths[-1]), 'config.json')
         with open(cfg_path, 'r') as f:
             data = json.load(f)
-        mslora_cfg = data['mslora_cfg']
-        mslora_cfg['max_task'] = len(lora_paths)
+        medlsc_cfg = get_adapter_config(data)
+        medlsc_cfg['max_task'] = len(lora_paths)
 
         routing_global_enable = bool(data.get('routing_global_enable', False))
         routing_projector_hidden = int(data.get('routing_projector_hidden', 0))
         routing_projector_trainable = bool(data.get('routing_projector_trainable', True))
-        routing_temperature = float(data.get('routing_temperature', mslora_cfg.get('allocation_temperature', 1.0)))
+        routing_temperature = float(data.get('routing_temperature', medlsc_cfg.get('allocation_temperature', 1.0)))
 
         model.config.routing_global_enable = routing_global_enable
         model.config.routing_projector_hidden = routing_projector_hidden
@@ -132,13 +132,13 @@ def load_pretrained_model(
             max_task=len(lora_paths),
         )
 
-        print(mslora_cfg)
-        if 'adding_layers' in mslora_cfg:
-            adding_layers = mslora_cfg.get('adding_layers')
+        print(medlsc_cfg)
+        if 'adding_layers' in medlsc_cfg:
+            adding_layers = medlsc_cfg.get('adding_layers')
             lora_names = [n for n in lora_names if any(f".{adding_layer}." in n for adding_layer in adding_layers)]
 
         print(f'lora names: ', lora_names)
-        add_lora_into_model_by_name(model, names=lora_names, mslora_cfg=mslora_cfg)
+        add_lora_into_model_by_name(model, names=lora_names, medlsc_cfg=medlsc_cfg)
 
 
         cl_lora_weights = []
