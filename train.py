@@ -6,9 +6,9 @@ v5: Continual Router Learning with Task Calibration and Evaluation
 This version adds:
   1. Calibration phase after router training (loss = supervised_loss + task_loss, LR=2e-5, 1 epoch)
   2. Evaluation on 200 sampled training records after each phase
-  3. Final full-dataset test set evaluation across all 14 datasets
+  3. Final full-dataset test set evaluation across all 13 datasets
 
-Minimal changes from v2 to maintain control.
+
 """
 
 import argparse
