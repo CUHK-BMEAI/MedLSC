@@ -8,8 +8,8 @@ from arguments import ModelArguments, TrainingArguments
 from torch.utils.checkpoint import checkpoint as torch_checkpoint
 
 from llava.constants import DEFAULT_IMAGE_PATCH_TOKEN
-from llava.medlsc_utils import medlsc as mslora
-from llava.medlsc_utils.lora_utils import get_all_linear_names, add_lora_into_model_by_name
+from llava.medlsc_utils import medlsc
+from llava.medlsc_utils.lora_utils import get_all_linear_names, add_lora_into_model_by_name, is_adapter_weight_key
 from llava.medlsc_utils.department_anchor_router_v10 import dataset_tags_for_order, install_department_anchor_router
 from llava.train.trainer import LLaVATrainer
 from llava.model.language_model.llava_mistral_cali import LlavaMistralConfig, LlavaMistralForCausalLM
@@ -348,7 +348,7 @@ def train(attn_implementation=None):
                 None if int(model_args.routing_projector_hidden) <= 0 else int(model_args.routing_projector_hidden)
             )
             routing_hidden_size = routing_projector_hidden or max(1, model.config.hidden_size // 2)
-            model.routing_projector = mslora.AllocationProjector(
+            model.routing_projector = medlsc.AllocationProjector(
                 in_features=model.config.hidden_size,
                 hidden_features=routing_hidden_size,
                 out_features=model.config.hidden_size,
@@ -366,7 +366,7 @@ def train(attn_implementation=None):
             model.config.routing_use_task_mask = bool(model_args.routing_use_task_mask)
             _freeze_previous_routing_keys(model, model_args.max_task - 1)
 
-        mslora_cfg = {
+        medlsc_cfg = {
             "max_task": model_args.max_task,
             "lora_rank": model_args.lora_rank,
             "lora_alpha": model_args.lora_alpha,
@@ -377,7 +377,7 @@ def train(attn_implementation=None):
             "allocation_projector_trainable": bool(model_args.routing_projector_trainable),
             "routing_use_task_mask": bool(model_args.routing_use_task_mask),
         }
-        model.config.mslora_cfg = mslora_cfg
+        model.config.medlsc_cfg = medlsc_cfg
 
         lora_names = get_all_linear_names(
             model,
@@ -385,21 +385,21 @@ def train(attn_implementation=None):
         )
 
         if model_args.adding_layers is not None:
-            model.config.mslora_cfg["adding_layers"] = model_args.adding_layers
+            model.config.medlsc_cfg["adding_layers"] = model_args.adding_layers
             print(model_args.adding_layers)
             lora_names = [
                 n for n in lora_names if any(f".{adding_layer}." in n for adding_layer in model_args.adding_layers)
             ]
 
         print("lora names:", lora_names)
-        add_lora_into_model_by_name(model, names=lora_names, mslora_cfg=mslora_cfg)
+        add_lora_into_model_by_name(model, names=lora_names, medlsc_cfg=medlsc_cfg)
 
         if model_args.previous_lora_path is not None:
             print(f"loading previous lora weight from {model_args.previous_lora_path}")
             for path in model_args.previous_lora_path:
                 weight_to_load = torch.load(path, "cpu")
                 for k, _ in model.state_dict().items():
-                    if "mslora_weight" in k and k in weight_to_load:
+                    if is_adapter_weight_key(k) and k in weight_to_load:
                         del weight_to_load[k]
                 model.load_state_dict(weight_to_load, strict=False)
                 _load_previous_router_state(model, path)
