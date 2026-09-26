@@ -35,6 +35,10 @@ Extensive experiments on HoC-MedVL show that existing continual-learning baselin
 
 *Code and data will be released soon. Stay tuned!*
 
+## Results
+The complete MedLSC experimental results are available here:
+[Download MedLSC results](https://drive.google.com/file/d/102ScCRq2aHp3b6vBHv7wi4zUNGaj3cnO/view?usp=sharing)
+
 ## Citation
 
 If you find this work useful, please consider citing:
