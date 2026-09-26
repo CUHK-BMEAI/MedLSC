@@ -35,9 +35,10 @@ Extensive experiments on HoC-MedVL show that existing continual-learning baselin
 
 *Code and data will be released soon. Stay tuned!*
 
-## Finetune
+## Run
 First, run `bash scripts/run_stage1.sh` to train expert models for all 13 datasets.
 Then, run `bash scripts/run_stage2_3.sh` to train the continual learning pipeline.
+For evaluation, run `bash scripts/eval_MedLSC.sh`
 
 ## Results
 The complete MedLSC experimental results are available here:
