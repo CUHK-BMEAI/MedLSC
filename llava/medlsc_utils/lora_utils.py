@@ -1,9 +1,12 @@
 import torch
 
-from llava.medlsc_utils import medlsc as mslora
+from llava.medlsc_utils import medlsc
 from torch import nn
 from tqdm import tqdm
 import loralib
+
+
+from llava.checkpoint_compat import get_adapter_config, is_adapter_weight_key
 
 
 def maybe_zero_3(param, ignore_status=False, name=None):
@@ -29,11 +32,11 @@ def get_state_dict_maybe_zero_3(named_params):
 
 def get_LinearWithLora(
     module: nn.Linear,
-    mslora_cfg: dict,
+    medlsc_cfg: dict,
     fan_in_fan_out=False,
-) -> mslora.Linear:
-    out_module = mslora.Linear(
-        **mslora_cfg,
+) -> medlsc.Linear:
+    out_module = medlsc.Linear(
+        **medlsc_cfg,
         in_features=module.in_features,
         out_features=module.out_features,
         fan_in_fan_out=fan_in_fan_out,
@@ -88,14 +91,14 @@ def set_module_by_name(
 def add_lora_into_model_by_name(
     model: nn.Module,
     names: list,
-    mslora_cfg: dict,
+    medlsc_cfg: dict,
     fan_in_fan_out: bool = False,
 ):
     with tqdm(total=len(names), desc="Adding LoRA modules (prog): ") as pbar:
         for name, module in model.named_modules():
             if name in names:
                 if isinstance(module, nn.Linear):
-                    set_module_by_name(model, name, get_LinearWithLora(module, mslora_cfg, fan_in_fan_out))
+                    set_module_by_name(model, name, get_LinearWithLora(module, medlsc_cfg, fan_in_fan_out))
                 elif isinstance(module, nn.Embedding):
                     print("Not support cl lora for nn.Embedding, will skip it...")
                 pbar.update(1)
