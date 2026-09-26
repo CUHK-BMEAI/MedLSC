@@ -10,7 +10,7 @@ _V5Base = v5.TrainSeparateV5
 
 
 class TrainSeparateV10DepartmentAnchorAdaptiveFusionDeltaMerge(_V5Base):
-    """Reuse V5 curriculum/checkpoint handling with a learned Eq.16 fusion gate."""
+    """Reuse V5 curriculum/checkpoint handling with a learned fusion gate."""
 
     def __init__(self, args):
         super().__init__(args)
