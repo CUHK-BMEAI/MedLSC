@@ -3,11 +3,12 @@
 v5: Continual Router Learning with Task Calibration and Evaluation
 ===========================================================================
 
-v5:
+This version adds:
   1. Calibration phase after router training (loss = supervised_loss + task_loss, LR=2e-5, 1 epoch)
   2. Evaluation on 200 sampled training records after each phase
-  3. Final full-dataset test set evaluation across all 13 datasets
+  3. Final full-dataset test set evaluation across all 14 datasets
 
+Minimal changes from v2 to maintain control.
 """
 
 import argparse
@@ -298,7 +299,7 @@ class TrainSeparateV5:
             print(f"[INFO] Copied task-0 LoRA without remap: {source_lora_file} -> {remapped_lora_file}")
             return remapped_lora_file
 
-        remap_script = self.repo_dir / "remap_lora_task_slot.py"
+        remap_script = self.repo_dir / "llava" / "remap_lora_task_slot.py"
         cmd = [
             self.python_bin,
             str(remap_script),
@@ -730,7 +731,7 @@ class TrainSeparateV5:
         """Build the replay buffer JSON for continual learning."""
         cmd = [
             self.python_bin,
-            str(self.repo_dir / "build_prog_replay_buffer.py"),
+            str(self.repo_dir / "llava" / "build_replay_buffer.py"),
             "--current-task-json",
             str(current_task_json),
             "--current-task-id",
