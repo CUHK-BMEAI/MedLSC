@@ -12,7 +12,7 @@ from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutpu
 from transformers.models.mistral.modeling_mistral import apply_rotary_pos_emb, repeat_kv
 
 from ..llava_arch import LlavaMetaModel, LlavaMetaForCausalLM
-from ...medlsc_utils import medlsc as mslora
+from ...medlsc_utils import medlsc
 
 
 def calculate_euclidean_distance(a, b):
@@ -123,7 +123,7 @@ def _compute_global_routing_weights_from_state(
 
 
 def _call_linear_with_routing(module, x, task_mask=None, routing_weights: Optional[torch.Tensor] = None):
-    if isinstance(module, mslora.Linear):
+    if isinstance(module, medlsc.Linear):
         return module(x, task_mask=task_mask, routing_weights=routing_weights)
     return module(x)
 
