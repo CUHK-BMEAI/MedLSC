@@ -63,6 +63,62 @@ The final dataset path should be:
 ./data/MedLSC/
 ```
 
+## Prepare Pre-trained Models
+
+Create a `pretrained_models/` directory at the root of this repository and organize the models as follows:
+
+```text
+MedLSC/
+├── pretrained_models/
+│   ├── llava_med_v1.5/
+│   └── openai/
+│       └── clip-vit-large-patch14-336/
+├── data/
+├── llava/
+├── scripts/
+├── establish_anchor.py
+├── eval_MedLSC.py
+├── README.md
+├── train_MedLSC.py
+└── train.py
+```
+
+### LLaVA-Med v1.5
+
+Download `microsoft/llava-med-v1.5-mistral-7b` from Hugging Face:
+
+[Download LLaVA-Med v1.5](https://huggingface.co/microsoft/llava-med-v1.5-mistral-7b)
+
+Place the downloaded model under:
+
+```text
+./pretrained_models/llava_med_v1.5/
+```
+
+### CLIP Vision Encoder
+
+Download `openai/clip-vit-large-patch14-336` from Hugging Face:
+
+[Download CLIP ViT-L/14-336](https://huggingface.co/openai/clip-vit-large-patch14-336)
+
+Place the downloaded model under:
+
+```text
+./pretrained_models/openai/clip-vit-large-patch14-336/
+```
+
+If using the local CLIP checkpoint, update the `"mm_vision_tower"` field in:
+
+```text
+./pretrained_models/llava_med_v1.5/config.json
+```
+
+to:
+
+```json
+"mm_vision_tower": "./pretrained_models/openai/clip-vit-large-patch14-336"
+```
+
 ## Run
 First, run `bash scripts/run_stage1.sh` to train expert models for all 13 datasets.
 Then, run `bash scripts/run_stage2_3.sh` to train the continual learning pipeline.
