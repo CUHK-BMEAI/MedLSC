@@ -103,7 +103,7 @@ class TrainSeparateV5:
         self.report_script = self.repo_dir / "llava" / "eval" / "report_results.py"
 
         # Output directory
-        run_name = "finetune_Hospital_PROG_STANDARD_V12-64-64_llava_med_v1.5"
+        run_name = "finetune_MedLSC_stage2+3-64-64_llava_med_v1.5"
         if self.is_reversed_order:
             run_name += "_REVERSED"
         self.output_base = self.checkpoint_root / run_name
