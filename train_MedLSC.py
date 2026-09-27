@@ -95,17 +95,30 @@ class TrainSeparateV10DepartmentAnchorAdaptiveFusionDeltaMerge(_V5Base):
         ]
         env = os.environ.copy()
         env["CUDA_VISIBLE_DEVICES"] = self.devices.split(",")[0].strip()
-        print(f"[MedLSC] Preparing evaluation anchors and caches: {anchor_dir}")
-        # A separate process releases CLIP memory before DeepSpeed starts.
-        subprocess.run(command, check=True, env=env)
-
         anchor_file = anchor_dir / "anchor_lora_router.pt"
         cache_dir = anchor_dir / "test_feature_cache"
+        skip_existing = os.environ.get("SKIP_EXISTING_ANCHORS", "1").strip().lower()
+        if skip_existing not in {"0", "1", "false", "true", "no", "yes"}:
+            raise ValueError("SKIP_EXISTING_ANCHORS must be 0/1, false/true, or no/yes")
+        complete = anchor_file.is_file() and anchor_file.stat().st_size > 0
+        for dataset in self.datasets:
+            matches = list(cache_dir.glob(f"*_{dataset.tag}_test_features.pt"))
+            complete = complete and (
+                len(matches) == 1 and matches[0].is_file()
+                and matches[0].stat().st_size > 0
+            )
+        if skip_existing in {"1", "true", "yes"} and complete:
+            print(f"[MedLSC] Reusing existing evaluation anchors and caches: {anchor_dir}")
+        else:
+            print(f"[MedLSC] Preparing evaluation anchors and caches: {anchor_dir}")
+            # A separate process releases CLIP memory before DeepSpeed starts.
+            subprocess.run(command, check=True, env=env)
+
         if not anchor_file.is_file() or anchor_file.stat().st_size == 0:
             raise FileNotFoundError(f"Anchor preparation did not produce: {anchor_file}")
         for dataset in self.datasets:
             matches = list(cache_dir.glob(f"*_{dataset.tag}_test_features.pt"))
-            if len(matches) != 1 or matches[0].stat().st_size == 0:
+            if len(matches) != 1 or not matches[0].is_file() or matches[0].stat().st_size == 0:
                 raise RuntimeError(
                     f"Expected one nonempty test-feature cache for {dataset.tag} "
                     f"in {cache_dir}; found {len(matches)}."
