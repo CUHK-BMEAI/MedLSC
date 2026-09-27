@@ -26,11 +26,12 @@ class TrainSeparateV10DepartmentAnchorAdaptiveFusionDeltaMerge(_V5Base):
             / "eval_medlsc_cr_with_routing_department_anchor_adaptive_fusion_delta_merge.py"
         )
 
-        order = "REVERSED" if self.is_reversed_order else "STANDARD"
         run_name = (
-            f"finetune_Hospital_PROG_{order}_V10_DEPT_ANCHOR_ADAPTIVE_FUSION_DELTA_MERGE-"
+            f"finetune_MedLSC_stage2+3-"
             f"{args.lora_rank}-{args.lora_alpha}_llava_med_v1.5"
         )
+        if self.is_reversed_order:
+            run_name += "_REVERSED"
         self.output_base = self.checkpoint_root / run_name
         self.output_base.mkdir(parents=True, exist_ok=True)
         self.prep_dir = self.output_base / "prepared_json"
