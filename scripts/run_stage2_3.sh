@@ -9,6 +9,8 @@ LORA_CHECKPOINT_ROOT="${LORA_CHECKPOINT_ROOT:-${CHECKPOINT_ROOT}/finetune_lora_e
 DATA_ROOT="${DATA_ROOT:-${REPO_DIR}/data/MedLSC}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 START_FROM_TASK="${START_FROM_TASK:-0}"
+# Reuse complete anchor/cache files; set to 0 to rebuild them.
+export SKIP_EXISTING_ANCHORS="${SKIP_EXISTING_ANCHORS:-1}"
 PORT="${PORT:-29501}"
 TASK_ORDER="${TASK_ORDER:-standard}"
 export PYTHONPATH="${REPO_DIR}${PYTHONPATH:+:${PYTHONPATH}}"
