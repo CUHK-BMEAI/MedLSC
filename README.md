@@ -32,12 +32,19 @@ To address these challenges, we propose **MedLSC**, a progressive expert-based c
 Extensive experiments on HoC-MedVL show that existing continual-learning baselines struggle with forgetting and knowledge conflict, while MedLSC achieves stronger overall performance and more reliable long-horizon knowledge retention.
 
 ## Data Preparation
-Download the MedLSC dataset from
+Download the MedLSC dataset from the provided Google Drive link.
+
 Extract all compressed files before training. For datasets provided as `.tar.gz`, for example:
+
 ```bash
 tar -xzf images.tar.gz
-Then create a data/ directory at the root of this repository and place the downloaded MedLSC folder inside it.
+```
+
+Then create a `data/` directory at the root of this repository and place the downloaded `MedLSC` folder inside it.
+
 The expected directory structure is:
+
+```text
 MedLSC/
 ├── data/
 │   └── MedLSC/
@@ -48,7 +55,13 @@ MedLSC/
 ├── README.md
 ├── train_MedLSC.py
 └── train.py
-The final dataset path should be: ./data/MedLSC/
+```
+
+The final dataset path should be:
+
+```text
+./data/MedLSC/
+```
 
 ## Run
 First, run `bash scripts/run_stage1.sh` to train expert models for all 13 datasets.
