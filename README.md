@@ -70,7 +70,7 @@ For evaluation, run `bash scripts/eval_MedLSC.sh`
 
 ## Results
 The complete MedLSC experimental results are available here:
-[Download MedLSC results](https://drive.google.com/file/d/102ScCRq2aHp3b6vBHv7wi4zUNGaj3cnO/view?usp=sharing)
+[Download MedLSC results](https://drive.google.com/drive/folders/18FlLd-b-tQdd4zs2C01LisyqpsZHSAWC?usp=sharing)
 
 ## Citation
 
