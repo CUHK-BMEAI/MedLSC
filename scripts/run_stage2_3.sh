@@ -88,18 +88,18 @@ echo "Resume from task: ${START_FROM_TASK}"
 echo "============================================================"
 
 "${PYTHON_BIN}" "${REPO_DIR}/train_MedLSC.py" \
-    --repo_dir "${REPO_DIR}" \
-    --checkpoint_root "${CHECKPOINT_ROOT}" \
-    --lora_checkpoint_root "${LORA_CHECKPOINT_ROOT}" \
-    --data_root "${DATA_ROOT}" \
-    --python_bin "${PYTHON_BIN}" \
-    --devices "${DEVICES}" \
-    --lora_rank "${LORA_RANK}" \
-    --lora_alpha "${LORA_ALPHA}" \
-    --learning_rate "${LR}" \
-    --gradient_accumulation_steps "${GRADIENT_ACC_STEPS}" \
-    --model_max_length "${MODEL_MAX_LENGTH}" \
-    --port "${PORT}" \
-    --start_from_task "${START_FROM_TASK}" \
-    
+    --repo_dir "${REPO_DIR}" \
+    --checkpoint_root "${CHECKPOINT_ROOT}" \
+    --lora_checkpoint_root "${LORA_CHECKPOINT_ROOT}" \
+    --data_root "${DATA_ROOT}" \
+    --python_bin "${PYTHON_BIN}" \
+    --devices "${DEVICES}" \
+    --lora_rank "${LORA_RANK}" \
+    --lora_alpha "${LORA_ALPHA}" \
+    --learning_rate "${LR}" \
+    --gradient_accumulation_steps "${GRADIENT_ACC_STEPS}" \
+    --model_max_length "${MODEL_MAX_LENGTH}" \
+    --port "${PORT}" \
+    --start_from_task "${START_FROM_TASK}" \
+    
 
