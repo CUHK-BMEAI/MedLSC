@@ -15,7 +15,7 @@ if [[ -z "${MODEL_PATH:-}" ]]; then
   fi
 fi
 
-DATA_ROOT="${DATA_ROOT:-/data3/yoyodata/MedLSC_data}"
+DATA_ROOT="${DATA_ROOT:-${REPO_DIR}/data/MedLSC}"
 CHECKPOINT_ROOT="${CHECKPOINT_ROOT:-${REPO_DIR}/checkpoints/finetune_MedLSC_stage2+3-64-64_llava_med_v1.5}"
 ANCHOR_RESULTS_DIR="${ANCHOR_RESULTS_DIR:-${CHECKPOINT_ROOT}/anchors}"
 ANCHOR_FILE="${ANCHOR_FILE:-${ANCHOR_RESULTS_DIR}/anchor_lora_router.pt}"
@@ -32,7 +32,7 @@ STAGE_TAG="${STAGE_TAGS[STAGE_ID]}"
 ANCHOR_COEFFICIENT="${ANCHOR_COEFFICIENT:-0.5}"
 ANCHOR_DEPARTMENT_TOPK="${ANCHOR_DEPARTMENT_TOPK:-1}"
 KEY_OUTSIDE_TOPK="${KEY_OUTSIDE_TOPK:-3}"
-OUTPUT_DIR="${OUTPUT_DIR:-${REPO_DIR}/results/v10_dept_anchor_adaptive_fusion_delta_merge_init${ANCHOR_COEFFICIENT}_atop${ANCHOR_DEPARTMENT_TOPK}_ktop${KEY_OUTSIDE_TOPK}/stage_$(printf '%02d' "${STAGE_ID}")_${STAGE_TAG}}"
+OUTPUT_DIR="${OUTPUT_DIR:-${REPO_DIR}/results/MedLSC_final_stage_results}"
 CUDA_DEVICE="${CUDA_DEVICE:-1}"
 DATASETS="${DATASETS:-all-seen}"
 MODEL_DTYPE="${MODEL_DTYPE:-bf16}"
@@ -42,7 +42,7 @@ MAX_NEW_TOKENS="${MAX_NEW_TOKENS:-100}"
 export PYTHONPATH="${REPO_DIR}${PYTHONPATH:+:${PYTHONPATH}}"
 
 echo "============================================================"
-echo "V10 adaptive-fusion department-aware query-anchor evaluation with exact delta-merge LoRA"
+echo "Vfinal_MedLSC"
 echo "Checkpoint root: ${CHECKPOINT_ROOT}"
 echo "Stage: ${STAGE_ID} (${STAGE_TAG})"
 echo "Datasets: ${DATASETS}"
