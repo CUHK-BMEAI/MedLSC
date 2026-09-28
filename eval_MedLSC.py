@@ -41,8 +41,9 @@ REPO_DIR = Path(__file__).resolve().parent
 if str(REPO_DIR) not in sys.path:
     sys.path.insert(0, str(REPO_DIR))
 
-from train_anchor_idea import (  # noqa: E402
+from establish_anchor import (  # noqa: E402
     STANDARD_DATASETS,
+    compute_routing_weights,
     DatasetSpec,
     extract_prompt,
     image_value,
@@ -51,20 +52,16 @@ from train_anchor_idea import (  # noqa: E402
     torch_load_cpu,
     unwrap_state_dict,
 )
-from eval_anchor_idea import (  # noqa: E402
-    answer_type,
-    decode_generation,
-    generation_prompt,
-    ground_truth,
-    load_routing_from_feature_cache,
-)
+
 
 from llava.constants import (  # noqa: E402
     DEFAULT_IMAGE_PATCH_TOKEN,
+    DEFAULT_IMAGE_TOKEN,
     DEFAULT_IM_END_TOKEN,
     DEFAULT_IM_START_TOKEN,
     IMAGE_TOKEN_INDEX,
 )
+from llava.conversation import conv_templates
 from llava.eval.report_results import get_metrics  # noqa: E402
 from llava.mm_utils import get_model_name_from_path, process_images, tokenizer_image_token  # noqa: E402
 from llava.model import LlavaMistralForCausalLM  # noqa: E402
@@ -93,6 +90,117 @@ DEPARTMENT_BY_TAG = {
     "kvasir": "gastroenterology",
     "hyperkvasir": "gastroenterology",
 }
+
+
+def load_routing_from_feature_cache(
+    anchor_file: Path,
+    cache_dir: Path,
+    datasets: Sequence[DatasetSpec],
+    stage_id: int,
+) -> dict[str, list[dict[str, Any]]]:
+    """Reconstruct exact anchor weights from cached CLIP features, without CLIP."""
+    anchor_state = torch_load_cpu(anchor_file)
+    anchor_tags = list(anchor_state.get("dataset_tags", []))
+    expected_tags = [spec.tag for spec in datasets]
+    missing_anchor_tags = [tag for tag in expected_tags if tag not in anchor_tags]
+    if missing_anchor_tags:
+        raise ValueError(f"Anchor file is missing dataset tags: {missing_anchor_tags}")
+    # Dataset prototypes are independent of curriculum order. Reindex a stored
+    # standard-order bank when reverse-order evaluation is requested.
+    anchor_indices = torch.tensor([anchor_tags.index(tag) for tag in expected_tags], dtype=torch.long)
+    image_anchors = F.normalize(
+        anchor_state["image_anchors"].float().index_select(0, anchor_indices), dim=-1
+    )
+    text_anchors = F.normalize(
+        anchor_state["text_anchors"].float().index_select(0, anchor_indices), dim=-1
+    )
+    temperature = float(anchor_state.get("temperature", 0.1))
+    image_weight = float(anchor_state.get("image_weight", 0.5))
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for expert_id, spec in enumerate(datasets):
+        cache_matches = sorted(cache_dir.glob(f"*_{spec.tag}_test_features.pt"))
+        if len(cache_matches) != 1:
+            raise FileNotFoundError(
+                f"Expected exactly one cached feature file for {spec.tag} under {cache_dir}, "
+                f"found: {cache_matches}"
+            )
+        cache_file = cache_matches[0]
+        cached = torch_load_cpu(cache_file)
+        # Match establish_anchor.py's stage evaluator exactly: cached features
+        # were normalized before FP16 storage and are converted back to FP32 here.
+        image_features = cached["image_features"].float()
+        text_features = cached["text_features"].float()
+        weights, similarity, image_sim, text_sim = compute_routing_weights(
+            image_features,
+            text_features,
+            image_anchors,
+            text_anchors,
+            temperature,
+            image_weight,
+        )
+        metadata = cached["metadata"]
+        if len(metadata) != weights.size(0):
+            raise ValueError(
+                f"Feature/metadata length mismatch in {cache_file}: {weights.size(0)} != {len(metadata)}"
+            )
+        rows: list[dict[str, Any]] = []
+        for index, sample in enumerate(metadata):
+            rows.append(
+                {
+                    **sample,
+                    "stage_id": stage_id,
+                    "dataset_tag": spec.tag,
+                    "true_expert_id": expert_id,
+                    "expert_weights": weights[index].tolist(),
+                    "combined_similarity": similarity[index].tolist(),
+                    "image_similarity": image_sim[index].tolist(),
+                    "text_similarity": text_sim[index].tolist(),
+                }
+            )
+        grouped[spec.tag] = rows
+        print(
+            f"[ROUTING CACHE] tag={spec.tag:<12} samples={len(rows):6d} "
+            f"cache={cache_file.name}"
+        )
+    return grouped
+
+def answer_type(row: dict[str, Any]) -> str:
+    return str(row.get("answer_type", "OPEN"))
+
+def ground_truth(row: dict[str, Any]) -> str:
+    if row.get("gt") is not None:
+        return str(row["gt"])
+    conversations = row.get("conversations")
+    if isinstance(conversations, list):
+        for turn in conversations:
+            if not isinstance(turn, dict):
+                continue
+            role = str(turn.get("from", turn.get("role", ""))).lower()
+            if role in {"gpt", "assistant"}:
+                return str(turn.get("value", turn.get("content", "")))
+    return ""
+
+def generation_prompt(model, question: str, conv_mode: str) -> tuple[str, str]:
+    clean_question = question.replace(DEFAULT_IMAGE_TOKEN, "").strip()
+    if model.config.mm_use_im_start_end:
+        user_message = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + "\n" + clean_question
+    else:
+        user_message = DEFAULT_IMAGE_TOKEN + "\n" + clean_question
+    conversation = conv_templates[conv_mode].copy()
+    conversation.append_message(conversation.roles[0], user_message)
+    conversation.append_message(conversation.roles[1], None)
+    return clean_question, conversation.get_prompt()
+
+def decode_generation(tokenizer, output_ids: torch.Tensor, input_ids: torch.Tensor) -> str:
+    if output_ids.dim() == 1:
+        output_ids = output_ids.unsqueeze(0)
+    # Different transformers/LLaVA versions return either generated-only IDs or
+    # prompt+generated IDs. Strip the prompt only when it is actually present.
+    if output_ids.shape[1] > input_ids.shape[1] and torch.equal(
+        output_ids[:, : input_ids.shape[1]].to(input_ids.device), input_ids
+    ):
+        output_ids = output_ids[:, input_ids.shape[1] :]
+    return tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
 
 
 def stage_directory(checkpoint_root: Path, datasets: Sequence[DatasetSpec], stage_id: int) -> Path:
@@ -457,7 +565,7 @@ def evaluate_dataset(
                 "answer_id": str(uuid4()),
                 "model_id": get_model_name_from_path(str(args.model_path)),
                 "metadata": {
-                    "baseline": "v10_adaptive_hybrid_department_anchor_delta_merge",
+                    "baseline": "MedLSC",
                     "stage_id": args.stage_id,
                     "anchor_coefficient": args.anchor_coefficient,
                     "adaptive_fusion_weights_anchor_query": fusion_weights,
@@ -616,3 +724,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
