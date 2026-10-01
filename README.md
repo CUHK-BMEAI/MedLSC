@@ -120,9 +120,36 @@ to:
 ```
 
 ## Run
-First, run `bash scripts/run_stage1.sh` to train expert models for all 13 datasets.
-Then, run `bash scripts/run_stage2_3.sh` to train the continual learning pipeline.
-For evaluation, run `bash scripts/eval_MedLSC.sh`
+
+For convenience, we recommend downloading the pre-trained Stage 1 expert checkpoints from OneDrive:
+
+[Download Stage 1 Expert Checkpoints](https://mycuhk-my.sharepoint.com/:u:/g/personal/1155201509_link_cuhk_edu_hk/IQAEeY6Th2Q7Sb0MpFbxNcIOARgV1_T34Zb0nJ-8P0lgxzw?e=UkKfjg)
+
+After extracting the archive, place the 13 dataset checkpoint folders under:
+
+```text
+./checkpoints/
+```
+
+Then directly run:
+
+```bash
+bash scripts/run_stage2_3.sh
+```
+
+If you prefer to rebuild the Stage 1 experts from scratch, run:
+
+```bash
+bash scripts/run_stage1.sh
+```
+
+This will train expert models for all 13 datasets.
+
+For evaluation, run:
+
+```bash
+bash scripts/eval_MedLSC.sh
+```
 
 ## Results
 The complete MedLSC experimental results are available here:
