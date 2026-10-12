@@ -32,7 +32,7 @@ To address these challenges, we propose **MedLSC**, a progressive expert-based c
 Extensive experiments on HoC-MedVL show that existing continual-learning baselines struggle with forgetting and knowledge conflict, while MedLSC achieves stronger overall performance and more reliable long-horizon knowledge retention.
 
 ## Data Preparation
-Download the MedLSC dataset from the provided Google Drive link.
+Download the MedLSC dataset from the provided OneDrive link: [Download Datasets](https://mycuhk-my.sharepoint.com/:u:/g/personal/1155201509_link_cuhk_edu_hk/IQD_DcSzdA6hQqijsmFu_yJrAZGWBaWBcUyQZiEhRmwJXmo?e=FJu2SH)
 
 Extract all compressed files before training. For datasets provided as `.tar.gz`, for example:
 
